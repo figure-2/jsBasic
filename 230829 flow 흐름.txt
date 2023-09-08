@@ -1,0 +1,324 @@
+django-admin startproject auth .
+
+django-admin startapp articles
+
+django-admin startapp accounts
+
+python -m venv venv
+
+source venv/scripts/activate
+
+pip install django
+
+.gitignore
+
+-----------------------------------------------------------------------------------------------
+auth / settings.py
+
+installed_apps 에 startapp 2개 추가
+
+templates 에서 BASE_DIR  / 'templates' 추가
+
+-----------------------------------------------------------------------------------------------
+최상위 폴더에 templates 생성 후 base.html 생성 후
+
+from django.db import models
+from django.contrib.auth.models import AbstractUser  
+# django 공식문서에서 가져온것 from 흐름 파악하기
+
+
+# Create your models here.
+# 유저 모델을 만든다.
+
+class User(AbstractUser): # Abstractuser를 User에 상속 받아서 넣는다
+    pass
+    
+-----------------------------------------------------------------------------------------------
+accounts / admin.py
+
+from django.contrib import admin
+
+from .models import User
+
+# Register your models here.
+
+admin.site.register(User) 
+
+# User모델을 register에 등록한다.
+# UserAdmin은 관리자가 User정보를 관리하게 쉽게 형태를 만들어준다.
+
+-----------------------------------------------------------------------------------------------
+auth / settings.py 에서 맨 아래 추가
+
+AUTH_USER_MODEL = 'accounts.User'
+
+-----------------------------------------------------------------------------------------------
+python manage.py makemigrations 설정
+
+-----------------------------------------------------------------------------------------------
+python manage.py migrate 설정
+
+-----------------------------------------------------------------------------------------------
+python manage.py createsuperuser 설정
+
+-----------------------------------------------------------------------------------------------
+accounts / admin.py에 내용 추가
+
+from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
+from .models import User
+
+# Register your models here.
+
+admin.site.register(User, UserAdmin) 
+
+-----------------------------------------------------------------------------------------------
+auth / urls.py 에 내용 작성
+
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('accounts/', include('accoints.urls')),
+]
+
+-----------------------------------------------------------------------------------------------
+accounts에 urls.py 생성 후 내용 작성
+from django.urls import path
+from .import views
+
+app_name = 'accoumts'
+
+urlpatterns = [
+    path('signup/', views.signup, name='signup'),
+]
+
+-----------------------------------------------------------------------------------------------
+accounts / views.py 에 내용 작성
+
+from django.shortcuts import render
+
+# Create your views here.
+
+def signup(request):
+    if request.method == 'Post':
+        pass
+    else:
+        pass
+
+
+-----------------------------------------------------------------------------------------------
+accounts 에서 forms 생성 후 내용 작성 2부 25분 내용 확인
+
+
+from django import forms
+from .models import User
+
+class UserModelForm(forms.modelForm):
+
+    class Meta:
+        model = User
+        fields = ('username',)
+================ 아래 내용으로 수정
+
+from django.contrib.auth.forms import UserCreationForm
+from .models import User
+
+class CustomUserCreationForm(UserCreationForm):
+    
+    class Meta:
+        model = User
+        #fields = '__all__'
+        fields = ('username',)
+
+
+
+-----------------------------------------------------------------------------------------------
+accounts / views.py 에 아래 내용 추가 작성
+
+from django.shortcuts import render
+from .forms import CustomUserCreationForm
+
+# Create your views here.
+
+def signup(request):
+    if request.method == 'Post':
+        pass
+    else:
+        form = CustomUserCreationForm()
+
+    context = {
+        'form': form,
+    }
+
+    return render(request, 'signup.html', context)
+
+
+-----------------------------------------------------------------------------------------------
+상위 템플에서 베이스 작성 및 부트 스트랩 가서 네브바 작성
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
+</head>
+<body>
+
+
+    {% block body%}
+    {% endblock %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
+</body>
+</html>
+-----------------------------------------------------------------------------------------------
+어카운트 템플 사인업
+
+{% extends 'base.html' %}
+
+{% block body %}
+
+<form action="" method="POST">
+    {% csrf_token %}
+    {{form}}
+    <input type="submit">
+
+
+</form>
+
+{% endblock %}
+
+-----------------------------------------------------------------------------------------------
+어카운트 뷰스에 if 추가 작성
+
+from django.shortcuts import render, redirect
+from .forms import CustomUserCreationForm
+
+# Create your views here.
+
+def signup(request):
+    if request.method == 'POST':
+        form = CustomUserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('accounts:signup')
+    else:
+        form = CustomUserCreationForm()
+
+    context = {
+        'form': form,
+    }
+
+    return render(request, 'signup.html', context)
+
+
+-----------------------------------------------------------------------------------------------
+뷰스에 작성
+def login(request):
+    if request.method == 'POST':
+        pass
+    else:
+        pass
+
+-----------------------------------------------------------------------------------------------
+어카운트 폼스에
+
+class CustomAuthenticationForm(AuthenticationForm):
+    pass 
+
+추가
+
+-----------------------------------------------------------------------------------------------
+뷰스 작성
+
+def login(request):
+    if request.method == 'POST':
+        pass
+    else:
+        form = CustomAuthenticationForm()
+
+        context = {
+            'form': form,
+        }
+
+        return render(request, 'login.html', context)
+
+-----------------------------------------------------------------------------------------------
+템플릿에 login.html 생성 후 작성
+
+{% extends 'base.html' %}
+
+{% block body %}
+
+<form action="" method="POST">
+    {% csrf_token %}
+    {{form}}
+    <input type="submit">
+
+
+</form>
+
+{% endblock %}
+
+-----------------------------------------------------------------------------------------------
+뷰스에 로그인 함수 추가 작성
+
+def login(request):
+    if request.method == 'POST':
+        form = CustomAuthenticationForm(request, request.POST)
+        if form.is_valid():
+            auth_login(request, form.get_user())
+            return redirect('accounts:login')
+
+
+    else:
+        form = CustomAuthenticationForm()
+
+        context = {
+            'form': form,
+        }
+
+        return render(request, 'login.html', context)
+
+-----------------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------------
+
+
+
+
+
+
